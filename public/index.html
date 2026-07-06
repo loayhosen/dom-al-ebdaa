@@ -1,0 +1,1579 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+<title>دوم الابداع - نظام فواتير وعملاء متكامل</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+    background: #eef2f5;
+    color: #1a3a4b;
+    padding: 20px;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  .container { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+  }
+  
+  h1 { 
+    font-size: 1.8rem; 
+    margin-bottom: 10px; 
+    color: #0b5e7c; 
+  }
+  
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .flex-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  
+  .panel {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  
+  button, .btn {
+    background: #0b5e7c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+    font-size: 14px;
+  }
+  
+  button:hover { background: #094a63; transform: translateY(-1px); }
+  button.ghost {
+    background: transparent;
+    border: 1px solid #0b5e7c;
+    color: #0b5e7c;
+  }
+  button.ghost:hover { background: #e6f3f8; }
+  
+  input, select, textarea {
+    padding: 8px 12px;
+    border-radius: 40px;
+    border: 1px solid #cbdbe2;
+    font-size: 14px;
+    background: white;
+  }
+  
+  .relative { position: relative; }
+  
+  .suggestions {
+    position: fixed;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    min-width: 200px;
+  }
+  
+  .suggestion-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: 0.1s;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .suggestion-item:hover { background: #eef2f9; }
+  
+  .main-layout {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  
+  .invoice-container {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: visible;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+  
+  .invoice-card {
+    width: 794px;
+    min-width: 794px;
+    max-width: 794px;
+    min-height: 1123px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.5;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .invoice-card::before {
+    content: "دوم الابداع";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 80px;
+    font-weight: bold;
+    color: rgba(11, 94, 124, 0.08);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .statement-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 70px;
+    font-weight: bold;
+    color: rgba(11, 94, 124, 0.07);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .invoice-header {
+    background: #0b5e7c;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .invoice-title { font-size: 22px; font-weight: bold; }
+  
+  .client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .client-badge {
+    background: #0a4f68;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-weight: bold;
+    word-break: break-word;
+    max-width: 250px;
+  }
+  .tax-number-badge {
+    background: #0a4f68;
+    padding: 4px 14px;
+    border-radius: 40px;
+    font-size: 13px;
+    opacity: 0.9;
+    word-break: break-word;
+    max-width: 250px;
+  }
+  
+  .invoice-body {
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+  
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  
+  .items-table th, .items-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: right;
+  }
+  
+  .items-table th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+  
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  .amount-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    margin-top: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .amount-label { font-weight: bold; min-width: 140px; text-align: left; }
+  .amount-value {
+    background: #f1f5f9;
+    padding: 6px 20px;
+    border-radius: 30px;
+    min-width: 180px;
+    text-align: center;
+  }
+  
+  .note {
+    background: #0b5e7c;
+    color: white;
+    padding: 12px;
+    border-radius: 16px;
+    margin-top: 20px;
+  }
+  
+  .invoice-footer {
+    background: #f8fafc;
+    padding: 16px 24px;
+    border-top: 2px solid #0b5e7c;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #1a3a4b;
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+  }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-row-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .footer-label {
+    font-weight: 600;
+    color: #0b5e7c;
+    margin-left: 4px;
+  }
+  .footer-account {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+  
+  /* شاشة الترحيب */
+  #welcomeScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0b5e7c 0%, #1a3a4b 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  #welcomeScreen h1 {
+    font-size: 3.5rem;
+    margin-bottom: 10px;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  #welcomeScreen p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+    margin-bottom: 40px;
+  }
+  .welcome-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  .welcome-btn {
+    padding: 16px 48px;
+    font-size: 1.4rem;
+    border-radius: 60px;
+    border: none;
+    cursor: pointer;
+    background: white;
+    color: #0b5e7c;
+    font-weight: bold;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transition: 0.3s;
+    min-width: 200px;
+  }
+  .welcome-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+  }
+  .welcome-btn.secondary {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+  }
+  .welcome-btn.secondary:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  /* مودال كلمة المرور */
+  .password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+  .password-modal-content {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    color: #1a3a4b;
+  }
+  .password-modal-content h2 {
+    color: #0b5e7c;
+    margin-bottom: 20px;
+  }
+  .password-modal-content input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #cbdbe2;
+    border-radius: 40px;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .password-modal-content .error {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    display: none;
+  }
+  
+  /* واجهة المتابع */
+  #followupScreen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #eef2f5;
+    z-index: 8000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  #followupScreen .followup-header {
+    background: #0b5e7c;
+    color: white;
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 25px;
+  }
+  #followupScreen .followup-header h2 {
+    font-size: 1.8rem;
+    margin: 0;
+  }
+  #followupScreen .followup-header button {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  #followupScreen .followup-header button:hover {
+    background: rgba(255,255,255,0.3);
+  }
+  
+  .followup-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  .followup-nav button {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 40px;
+    background: white;
+    color: #0b5e7c;
+    border: 2px solid #0b5e7c;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .followup-nav button:hover {
+    background: #0b5e7c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(11,94,124,0.3);
+  }
+  .followup-nav button.active {
+    background: #0b5e7c;
+    color: white;
+  }
+  
+  .followup-content {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    min-height: 400px;
+  }
+  
+  .followup-viewer {
+    display: none;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+  .followup-viewer .viewer-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .followup-viewer .viewer-actions button {
+    padding: 10px 25px;
+  }
+  .followup-viewer .back-btn {
+    background: #95a5a6;
+  }
+  .followup-viewer .back-btn:hover {
+    background: #7f8c8d;
+  }
+  
+  .main-content.hidden {
+    display: none;
+  }
+  
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: white;
+    border-radius: 24px;
+    max-width: 98%;
+    max-height: 95%;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 20px;
+    width: auto;
+    display: block;
+  }
+  .close-modal {
+    float: left;
+    cursor: pointer;
+    font-size: 28px;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.data-table th, table.data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+  }
+  .search-box {
+    margin-bottom: 15px;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px;
+  }
+  
+  .statement-container {
+    width: 794px;
+    min-width: 794px;
+    background: white;
+    margin: 0 auto;
+  }
+  
+  @media print {
+    .no-print { display: none; }
+    .invoice-card::before { opacity: 0.2; }
+    .invoice-card {
+      width: 210mm;
+      min-width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
+      box-shadow: none;
+      margin: 0;
+    }
+    body {
+      background: white;
+      padding: 0;
+      margin: 0;
+    }
+    .modal {
+      display: none !important;
+    }
+    #followupScreen { display: none !important; }
+    #welcomeScreen { display: none !important; }
+  }
+  
+  @media screen and (max-width: 860px) {
+    .invoice-container {
+      justify-content: flex-start;
+    }
+    .modal-content {
+      overflow-x: auto;
+    }
+    .footer-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #followupScreen .followup-header {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+  
+  @media screen and (max-width: 768px) {
+    input, select, textarea, button {
+      font-size: 16px;
+    }
+    #welcomeScreen h1 {
+      font-size: 2.2rem;
+    }
+    .welcome-btn {
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      min-width: 150px;
+    }
+    .followup-nav button {
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- شاشة الترحيب -->
+<div id="welcomeScreen">
+  <h1>دوم الابداع</h1>
+  <p>نظام فواتير وعملاء متكامل</p>
+  <div class="welcome-buttons">
+    <button class="welcome-btn" id="startBtn">بدء</button>
+    <button class="welcome-btn secondary" id="followupBtn">بدء للمتابع</button>
+  </div>
+</div>
+
+<!-- مودال كلمة المرور -->
+<div class="password-modal" id="passwordModal">
+  <div class="password-modal-content">
+    <h2>🔐 أدخل الرقم السري</h2>
+    <input type="password" id="passwordInput" placeholder="الرقم السري" maxlength="10">
+    <div class="error" id="passwordError">الرقم السري غير صحيح</div>
+    <button id="passwordSubmitBtn">تأكيد</button>
+    <button class="ghost" id="passwordCancelBtn" style="margin-top:10px;">إلغاء</button>
+  </div>
+</div>
+
+<!-- واجهة المتابع -->
+<div id="followupScreen">
+  <div class="followup-header">
+    <h2>📋 واجهة المتابع</h2>
+    <button id="exitFollowupBtn">🏠 العودة إلى الرئيسية</button>
+  </div>
+  <div class="followup-nav">
+    <button id="unreadInvoicesBtn">📄 فواتير غير مقروءة</button>
+    <button id="unreadQuotesBtn">📑 عروض سعر غير مقروءة</button>
+    <button id="archivedInvoicesBtn">📦 أرشيف الفواتير</button>
+    <button id="archivedQuotesBtn">📦 أرشيف عروض السعر</button>
+  </div>
+  <div class="followup-content" id="followupContent">
+    <p style="text-align:center; color:#888; padding:40px 0;">اختر أحد الخيارات أعلاه لعرض المستندات</p>
+  </div>
+  <div class="followup-viewer" id="followupViewer">
+    <div id="viewerInvoiceContainer"></div>
+    <div class="viewer-actions">
+      <button onclick="window.exportViewerDoc('img')">🖼️ تحميل صورة</button>
+      <button onclick="window.exportViewerDoc('pdf')">📄 تحميل PDF</button>
+      <button class="back-btn" onclick="window.closeViewerMode()">🔙 رجوع</button>
+    </div>
+  </div>
+</div>
+
+<!-- المحتوى الرئيسي -->
+<div class="main-content" id="mainContent">
+  <div class="container">
+    <div class="toolbar no-print">
+      <h1>دوم الابداع - نظام الفواتير</h1>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button id="saveDocBtn">💾 حفظ</button>
+        <button id="showInvoicesBtn">📄 الفواتير</button>
+        <button id="showQuotesBtn">📑 عروض السعر</button>
+        <button id="showCustomersBtn">👥 العملاء</button>
+        <button id="showAccountStatementBtn">📊 كشف حساب</button>
+      </div>
+    </div>
+
+    <div class="panel no-print">
+      <div class="flex-row">
+        <div class="relative" style="min-width: 220px;">
+          <label>اسم العميل</label>
+          <input type="text" id="clientNameInput" placeholder="ابدأ الكتابة..." autocomplete="off">
+          <div id="suggestions" class="suggestions" style="display:none;"></div>
+          <button id="selectCustomerBtn" style="margin-top: 6px; width: 100%; background: #eef2f5; color:#0b5e7c;">📋 عميل موجود مسبقاً</button>
+        </div>
+        <div style="min-width: 180px;">
+          <label>الرقم الضريبي</label>
+          <input type="text" id="taxNumberInput" placeholder="رقم الضريبة" style="width:100%;">
+        </div>
+        <label>الخصم <br/><input type="number" id="discountInput" step="0.01" value="0" style="width:110px"></label>
+        <label>المدفوع <br/><input type="number" id="paidInput" step="0.01" value="0" style="width:110px"></label>
+        <label>الصنف <br/><input type="text" id="itemName" placeholder="اسم الصنف" style="width:150px"></label>
+        <label>السعر <br/><input type="number" id="itemPrice" step="0.01" placeholder="0.00" style="width:110px"></label>
+        <label>الكمية <br/><input type="number" id="itemQty" step="1" value="" style="width:80px"></label>
+        <button id="addItemBtn">➕ إضافة</button>
+        <div style="display: flex; gap: 8px;">
+          <label><input type="radio" name="docType" value="invoice" checked> فاتورة</label>
+          <label><input type="radio" name="docType" value="quote"> عرض سعر</label>
+        </div>
+        <button id="newInvoiceBtn" class="ghost">🆕 فاتورة جديدة</button>
+        <button id="newQuoteBtn" class="ghost">🆕 عرض سعر جديد</button>
+        <button id="downloadImgBtn" class="ghost">🖼️ صورة</button>
+        <button id="downloadPdfBtn" class="ghost">📄 PDF</button>
+        <button id="addNoteBtn" class="ghost">📝 ملاحظة</button>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div class="invoice-container">
+        <div id="invoice" class="invoice-card">
+          <div class="invoice-header">
+            <div class="client-info">
+              <div class="client-badge" id="clientNameBox">اسم العميل :</div>
+              <div class="tax-number-badge" id="taxNumberBox">الرقم الضريبي :</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 18px; font-weight: bold;">دوم الابداع</div>
+              <div class="invoice-title" id="headerTitle">فاتورة #1000</div>
+            </div>
+            <div><span id="headerDate"></span></div>
+          </div>
+          <div class="invoice-body">
+            <table class="items-table">
+              <thead><tr><th>الصنف</th><th>سعر الوحدة</th><th>الكمية</th><th>الإجمالي</th><th style="width:70px"></th></thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+            <div>
+              <div class="amount-row"><span class="amount-label">المجموع:</span><span class="amount-value" id="totalCell"></span></div>
+              <div class="amount-row"><span class="amount-label">الخصم:</span><span class="amount-value" id="discountCell"></span></div>
+              <div class="amount-row"><span class="amount-label">الإجمالي بعد الخصم:</span><span class="amount-value" id="afterDiscountCell"></span></div>
+              <div class="amount-row" id="taxRow"><span class="amount-label">ضريبة (15%):</span><span class="amount-value" id="taxCell"></span></div>
+              <div class="amount-row"><span class="amount-label">الإجمالي شامل الضريبة:</span><span class="amount-value" id="finalTotalCell"></span></div>
+              <div class="amount-row" id="paidRow"><span class="amount-label">مدفوع:</span><span class="amount-value" id="paidCell"></span></div>
+              <div class="amount-row" id="remainingRow"><span class="amount-label">المتبقي:</span><span class="amount-value" id="remainingCell"></span></div>
+            </div>
+            <div id="noteBlue" class="note" style="display:none;"></div>
+          </div>
+          <div class="invoice-footer no-print">
+            <div class="footer-row">
+              <div>
+                <span class="footer-label">رقم الحساب / بنك الانماء :</span>
+                <span class="footer-account">SA2205000068204409397000</span>
+              </div>
+              <div>
+                <span class="footer-label">جوال :</span>
+                <span>0536880780</span>
+              </div>
+            </div>
+            <div class="footer-row-center">
+              <span>المملكة العربية السعودية - جدة - حي الحمدانية - مخطط الوليد</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- المودال العام -->
+<div id="modal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><div id="modalBody"></div></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // ---------- البيانات الأساسية ----------
+  let customers = [];
+  let invoices = [];
+  let quotes = [];
+  let currentEditId = null, currentEditType = null;
+  let items = [];
+  let currentType = "invoice";
+  let invoiceCounter = 1000;
+  let quoteCounter = 1000;
+
+  let hasUnsavedChanges = false;
+  let isFollowupMode = false;
+  let currentViewerDoc = null;
+
+  // عناصر DOM
+  const clientNameInput = document.getElementById("clientNameInput");
+  const taxNumberInput = document.getElementById("taxNumberInput");
+  const clientNameBox = document.getElementById("clientNameBox");
+  const taxNumberBox = document.getElementById("taxNumberBox");
+  const itemsBody = document.getElementById("itemsBody");
+  const totalCell = document.getElementById("totalCell");
+  const discountCell = document.getElementById("discountCell");
+  const afterDiscountCell = document.getElementById("afterDiscountCell");
+  const taxCell = document.getElementById("taxCell");
+  const finalTotalCell = document.getElementById("finalTotalCell");
+  const paidCell = document.getElementById("paidCell");
+  const remainingCell = document.getElementById("remainingCell");
+  const discountInput = document.getElementById("discountInput");
+  const paidInput = document.getElementById("paidInput");
+  const headerTitle = document.getElementById("headerTitle");
+  const headerDate = document.getElementById("headerDate");
+  const noteBlue = document.getElementById("noteBlue");
+  const paidRow = document.getElementById("paidRow");
+  const remainingRow = document.getElementById("remainingRow");
+  const taxRow = document.getElementById("taxRow");
+  const typeRadios = document.querySelectorAll("input[name='docType']");
+  const modal = document.getElementById("modal");
+  const closeModalSpan = document.querySelector(".close-modal");
+  const suggestionsDiv = document.getElementById("suggestions");
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const passwordModal = document.getElementById("passwordModal");
+  const passwordInput = document.getElementById("passwordInput");
+  const passwordError = document.getElementById("passwordError");
+  const followupScreen = document.getElementById("followupScreen");
+  const followupContent = document.getElementById("followupContent");
+  const followupViewer = document.getElementById("followupViewer");
+  const viewerInvoiceContainer = document.getElementById("viewerInvoiceContainer");
+  const mainContent = document.getElementById("mainContent");
+
+  // دوال الإغلاق
+  function closeModal() { modal.style.display = "none"; }
+  closeModalSpan.onclick = closeModal;
+  window.onclick = function(e) { if (e.target == modal) closeModal(); };
+
+  // دوال مساعدة
+  function formatMoney(n) { return n.toFixed(2) + " ريال"; }
+  function escapeHtml(str) { 
+    if(!str) return '';
+    return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});
+  }
+
+  function updateClientDisplay() {
+    let name = clientNameInput.value.trim();
+    clientNameBox.textContent = name ? "اسم العميل : " + name : "اسم العميل :";
+    let tax = taxNumberInput.value.trim();
+    taxNumberBox.textContent = tax ? "الرقم الضريبي : " + tax : "الرقم الضريبي :";
+    markUnsavedChanges();
+  }
+
+  function markUnsavedChanges() {
+    if (!isFollowupMode) hasUnsavedChanges = true;
+  }
+  function clearUnsavedChanges() {
+    hasUnsavedChanges = false;
+  }
+
+  function updateHeaderDate() { 
+    headerDate.textContent = new Date().toLocaleDateString("ar-EG") + " " + new Date().toLocaleTimeString("ar-EG"); 
+  }
+
+  function updateDocType() {
+    for(let r of typeRadios) if(r.checked) currentType = r.value;
+    let num = (currentType === "invoice") ? invoiceCounter : quoteCounter;
+    headerTitle.textContent = (currentType === "invoice" ? "فاتورة #" : "عرض سعر #") + num;
+    if(currentType === "invoice") { paidRow.style.display = "flex"; remainingRow.style.display = "flex"; paidInput.disabled = false; }
+    else { paidRow.style.display = "none"; remainingRow.style.display = "none"; paidInput.disabled = true; paidInput.value = 0; renderItems(); }
+    taxRow.style.display = "flex";
+  }
+
+  // ---------- دوال API ----------
+  async function fetchCustomers() {
+    const res = await fetch('/api/customers');
+    customers = await res.json();
+  }
+
+  async function fetchInvoices(readFilter = null) {
+    let url = '/api/invoices';
+    if (readFilter !== null) url += `?read=${readFilter}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    invoices = data;
+    // تحديث العداد
+    if (invoices.length > 0) {
+      const maxNum = Math.max(...invoices.map(i => i.number));
+      if (maxNum >= invoiceCounter) invoiceCounter = maxNum + 1;
+    }
+  }
+
+  async function fetchQuotes(readFilter = null) {
+    let url = '/api/quotes';
+    if (readFilter !== null) url += `?read=${readFilter}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    quotes = data;
+    if (quotes.length > 0) {
+      const maxNum = Math.max(...quotes.map(q => q.number));
+      if (maxNum >= quoteCounter) quoteCounter = maxNum + 1;
+    }
+  }
+
+  async function loadAllData() {
+    await fetchCustomers();
+    await fetchInvoices();
+    await fetchQuotes();
+    renderItems();
+    updateDocType();
+    updateClientDisplay();
+    clearUnsavedChanges();
+  }
+
+  // ---------- دوال العرض ----------
+  function renderItems() {
+    itemsBody.innerHTML = "";
+    let total = 0;
+    items.forEach((it, idx) => {
+      let rowTotal = it.price * it.qty;
+      total += rowTotal;
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(it.name)}</td>
+        <td>${it.price.toFixed(2)}</td>
+        <td>${it.qty}</td>
+        <td>${rowTotal.toFixed(2)}</td>
+        <td class="action-btns no-print"><button class="editItemBtn" data-idx="${idx}">✏️</button> <button class="delItemBtn" data-idx="${idx}">🗑️</button></td>
+      `;
+      itemsBody.appendChild(tr);
+    });
+    document.querySelectorAll(".editItemBtn").forEach(btn => btn.addEventListener("click", (e) => {
+      if (isFollowupMode) return;
+      let idx = parseInt(btn.dataset.idx);
+      let it = items[idx];
+      document.getElementById("itemName").value = it.name;
+      document.getElementById("itemPrice").value = it.price;
+      document.getElementById("itemQty").value = it.qty;
+      items.splice(idx,1);
+      renderItems();
+      markUnsavedChanges();
+    }));
+    document.querySelectorAll(".delItemBtn").forEach(btn => btn.addEventListener("click", (e) => {
+      if (isFollowupMode) return;
+      let idx = parseInt(btn.dataset.idx);
+      items.splice(idx,1);
+      renderItems();
+      markUnsavedChanges();
+    }));
+    let discount = parseFloat(discountInput.value) || 0;
+    let afterDiscount = Math.max(0, total - discount);
+    let tax = afterDiscount * 0.15;
+    let finalTotal = afterDiscount + tax;
+    let paid = (currentType === "invoice") ? (parseFloat(paidInput.value) || 0) : 0;
+    let remaining = Math.max(0, finalTotal - paid);
+    
+    totalCell.textContent = formatMoney(total);
+    discountCell.textContent = formatMoney(discount);
+    afterDiscountCell.textContent = formatMoney(afterDiscount);
+    taxCell.textContent = formatMoney(tax);
+    finalTotalCell.textContent = formatMoney(finalTotal);
+    if(currentType === "invoice") { paidCell.textContent = formatMoney(paid); remainingCell.textContent = formatMoney(remaining); }
+  }
+
+  // ---------- دوال العملاء والاقتراحات ----------
+  async function addCustomerIfNew(name) {
+    if(!name.trim()) return;
+    const existing = customers.find(c => c.name.toLowerCase() === name.trim().toLowerCase());
+    if(!existing) {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() })
+      });
+      const newCustomer = await res.json();
+      customers.push(newCustomer);
+    }
+  }
+
+  function showSuggestions(inputEl, suggestionsDivId) {
+    if(!inputEl) return;
+    let val = inputEl.value.trim();
+    let suggestionsContainer = document.getElementById(suggestionsDivId);
+    if(!suggestionsContainer) return;
+    if(!val) { suggestionsContainer.style.display = "none"; return; }
+    let matches = customers.filter(c => c.name.toLowerCase().includes(val.toLowerCase())).slice(0,6);
+    if(matches.length === 0) { suggestionsContainer.style.display = "none"; return; }
+    suggestionsContainer.innerHTML = matches.map(m => `<div class="suggestion-item" data-name="${escapeHtml(m.name)}">${escapeHtml(m.name)}</div>`).join("");
+    suggestionsContainer.style.display = "block";
+    let rect = inputEl.getBoundingClientRect();
+    suggestionsContainer.style.position = "fixed";
+    suggestionsContainer.style.top = (rect.bottom + window.scrollY + 5) + "px";
+    suggestionsContainer.style.left = (rect.left + window.scrollX) + "px";
+    suggestionsContainer.style.width = Math.max(rect.width, 200) + "px";
+    document.querySelectorAll(`#${suggestionsDivId} .suggestion-item`).forEach(el => {
+      el.addEventListener("click", () => {
+        inputEl.value = el.getAttribute("data-name");
+        if(inputEl.id === "clientNameInput") {
+          updateClientDisplay();
+        }
+        suggestionsContainer.style.display = "none";
+        markUnsavedChanges();
+      });
+    });
+  }
+
+  clientNameInput.addEventListener("input", () => {
+    updateClientDisplay();
+    showSuggestions(clientNameInput, "suggestions");
+    markUnsavedChanges();
+  });
+  clientNameInput.addEventListener("blur", () => setTimeout(() => suggestionsDiv.style.display = "none", 200));
+  taxNumberInput.addEventListener("input", () => {
+    updateClientDisplay();
+    markUnsavedChanges();
+  });
+
+  document.getElementById("selectCustomerBtn").addEventListener("click", () => {
+    if(customers.length === 0) { alert("لا يوجد عملاء محفوظون بعد"); return; }
+    let listHtml = `<h3>اختر عميلاً</h3><ul style="list-style:none; padding:0;">${customers.map(c => `<li style="margin:8px; cursor:pointer; padding:6px; background:#f0f0f0;" onclick="window.selectCustomerFromList('${escapeHtml(c.name)}')">${escapeHtml(c.name)}</li>`).join('')}</ul>`;
+    let modalContent = document.getElementById("modalBody");
+    modalContent.innerHTML = listHtml;
+    modal.style.display = "flex";
+  });
+  window.selectCustomerFromList = function(name) {
+    clientNameInput.value = name;
+    updateClientDisplay();
+    closeModal();
+    markUnsavedChanges();
+  };
+
+  // ---------- دوال الحفظ والتحميل ----------
+  async function saveCurrentDocument() {
+    if (isFollowupMode) { alert("لا يمكن التعديل في وضع المتابع"); return false; }
+    let clientName = clientNameInput.value.trim();
+    if(!clientName) { alert("أدخل اسم العميل"); return false; }
+    if(items.length === 0) { alert("أضف صنفاً"); return false; }
+    await addCustomerIfNew(clientName);
+    let taxNumber = taxNumberInput.value.trim();
+    let discount = parseFloat(discountInput.value) || 0;
+    let total = items.reduce((s,it)=> s + (it.price*it.qty),0);
+    let afterDiscount = Math.max(0, total - discount);
+    let tax = afterDiscount * 0.15;
+    let finalTotal = afterDiscount + tax;
+    let paid = (currentType === "invoice") ? (parseFloat(paidInput.value) || 0) : 0;
+    let note = (noteBlue.style.display === "block") ? noteBlue.textContent.replace("ملاحظة: ","") : "";
+    let now = new Date().toLocaleDateString("ar-EG") + " " + new Date().toLocaleTimeString("ar-EG");
+    let number = (currentType === "invoice") ? invoiceCounter : quoteCounter;
+    let doc = { 
+      clientName, 
+      taxNumber,
+      date: now, 
+      items: JSON.parse(JSON.stringify(items)), 
+      discount, 
+      paid, 
+      note, 
+      total, 
+      afterDiscount,
+      tax,
+      finalTotal, 
+      number,
+      read: false
+    };
+    if (currentEditId) doc.id = currentEditId;
+
+    const url = currentType === 'invoice' ? '/api/invoices' : '/api/quotes';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(doc)
+    });
+    const saved = await res.json();
+    if (res.ok) {
+      if (currentType === 'invoice') {
+        const idx = invoices.findIndex(i => i._id === saved._id);
+        if (idx > -1) invoices[idx] = saved;
+        else invoices.push(saved);
+        if (!currentEditId) invoiceCounter = Math.max(invoiceCounter, saved.number + 1);
+      } else {
+        const idx = quotes.findIndex(q => q._id === saved._id);
+        if (idx > -1) quotes[idx] = saved;
+        else quotes.push(saved);
+        if (!currentEditId) quoteCounter = Math.max(quoteCounter, saved.number + 1);
+      }
+      clearUnsavedChanges();
+      currentEditId = null;
+      currentEditType = null;
+      alert("تم الحفظ");
+      updateDocType();
+      return true;
+    } else {
+      alert('خطأ في الحفظ: ' + saved.error);
+      return false;
+    }
+  }
+
+  function loadDocumentForEdit(doc) {
+    if (isFollowupMode) return;
+    currentEditId = doc._id; 
+    currentEditType = doc.type; 
+    currentType = doc.type;
+    document.querySelector(`input[name="docType"][value="${doc.type}"]`).checked = true;
+    clientNameInput.value = doc.clientName;
+    taxNumberInput.value = doc.taxNumber || "";
+    updateClientDisplay();
+    items = JSON.parse(JSON.stringify(doc.items));
+    discountInput.value = doc.discount;
+    if(doc.type === "invoice") paidInput.value = doc.paid || 0; else paidInput.value = 0;
+    if(doc.note && doc.note.trim()) { noteBlue.style.display = "block"; noteBlue.textContent = "ملاحظة: " + doc.note; }
+    else { noteBlue.style.display = "none"; noteBlue.textContent = ""; }
+    renderItems(); updateDocType(); updateHeaderDate(); closeModal();
+    clearUnsavedChanges();
+  }
+
+  // ---------- دوال عرض القوائم ----------
+  function showDocumentsList(type) {
+    const docs = type === 'invoice' ? invoices : quotes;
+    let html = `<h3>${type === "invoice" ? "الفواتير المحفوظة" : "عروض السعر"}</h3>
+      <div class="search-box"><input type="text" id="searchInputDoc" placeholder="بحث باسم العميل أو الرقم"></div>
+      <div id="docsContainer" style="overflow-x:auto;"><table class="data-table"><thead><tr><th>الرقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead><tbody>`;
+    docs.forEach(doc => {
+      let status = doc.read ? "✅ مقروءة" : "🆕 غير مقروءة";
+      html += `<tr data-name="${doc.clientName.toLowerCase()}" data-num="${doc.number}"><td>${doc.number}</td><td>${escapeHtml(doc.clientName)}</td><td>${doc.date}</td><td>${doc.finalTotal.toFixed(2)}</td><td>${status}</td><td><button onclick="window.loadDocForEdit('${doc._id}','${type}')">تعديل</button> <button onclick="window.deleteDoc('${doc._id}','${type}')">حذف</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    document.getElementById("modalBody").innerHTML = html;
+    modal.style.display = "flex";
+    let search = document.getElementById("searchInputDoc");
+    if(search) search.addEventListener("input", (e) => {
+      let term = e.target.value.trim().toLowerCase();
+      let rows = document.querySelectorAll("#docsContainer tbody tr");
+      rows.forEach(row => {
+        let name = row.getAttribute("data-name") || "";
+        let num = row.getAttribute("data-num") || "";
+        if(name.includes(term) || num.includes(term)) row.style.display = "";
+        else row.style.display = "none";
+      });
+    });
+  }
+
+  window.loadDocForEdit = async function(id, type) {
+    const url = type === 'invoice' ? `/api/invoices/${id}` : `/api/quotes/${id}`;
+    const res = await fetch(url);
+    const doc = await res.json();
+    if (doc) loadDocumentForEdit(doc);
+  };
+
+  window.deleteDoc = async function(id, type) {
+    if(!confirm("حذف؟")) return;
+    const url = type === 'invoice' ? `/api/invoices/${id}` : `/api/quotes/${id}`;
+    const res = await fetch(url, { method: 'DELETE' });
+    if (res.ok) {
+      if (type === 'invoice') {
+        invoices = invoices.filter(i => i._id !== id);
+      } else {
+        quotes = quotes.filter(q => q._id !== id);
+      }
+      showDocumentsList(type);
+    } else {
+      alert('فشل الحذف');
+    }
+  };
+
+  // ---------- دوال العملاء وكشف الحساب ----------
+  function showCustomersList() {
+    if(customers.length===0) { alert("لا يوجد عملاء"); return; }
+    let html = `<h3>قائمة العملاء</h3><div class="search-box"><input type="text" id="searchCustomerInput" placeholder="بحث باسم العميل"></div><div id="custContainer" style="overflow-x:auto;"><table class="data-table"><thead><tr><th>الاسم</th><th>الفواتير</th><th>عروض السعر</th><th></th></tr></thead><tbody>`;
+    customers.forEach(c => {
+      let invCount = invoices.filter(i=>i.clientName.toLowerCase()===c.name.toLowerCase()).length;
+      let qtCount = quotes.filter(q=>q.clientName.toLowerCase()===c.name.toLowerCase()).length;
+      html += `<tr data-cname="${c.name.toLowerCase()}"><td>${escapeHtml(c.name)}</td><td>${invCount}</td><td>${qtCount}</td><td><button onclick="window.showCustomerDetails('${escapeHtml(c.name)}')">تفاصيل</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    document.getElementById("modalBody").innerHTML = html;
+    modal.style.display = "flex";
+    let search = document.getElementById("searchCustomerInput");
+    if(search) search.addEventListener("input", (e) => {
+      let term = e.target.value.trim().toLowerCase();
+      let rows = document.querySelectorAll("#custContainer tbody tr");
+      rows.forEach(row => {
+        let name = row.getAttribute("data-cname") || "";
+        if(name.includes(term)) row.style.display = "";
+        else row.style.display = "none";
+      });
+    });
+  }
+
+  window.showCustomerDetails = function(clientName) {
+    let invs = invoices.filter(i=>i.clientName.toLowerCase()===clientName.toLowerCase());
+    let qts = quotes.filter(q=>q.clientName.toLowerCase()===clientName.toLowerCase());
+    let html = `<h3>تفاصيل العميل: ${escapeHtml(clientName)}</h3>
+      <h4>فواتير</h4><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>#</th><th>التاريخ</th><th>الإجمالي</th><th>المتبقي</th><th></th></tr></thead><tbody>${invs.map(inv=>`<tr><td>${inv.number}</td><td>${inv.date}</td><td>${inv.finalTotal.toFixed(2)}</td><td>${(inv.finalTotal-(inv.paid||0)).toFixed(2)}</td><td><button onclick="window.loadDocForEdit('${inv._id}','invoice')">تعديل</button></td></tr>`).join('')}</tbody></table></div>
+      <h4>عروض السعر</h4><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>#</th><th>التاريخ</th><th>الإجمالي</th><th></th></tr></thead><tbody>${qts.map(q=>`<tr><td>${q.number}</td><td>${q.date}</td><td>${q.finalTotal.toFixed(2)}</td><td><button onclick="window.loadDocForEdit('${q._id}','quote')">تعديل</button></td></tr>`).join('')}</tbody></table></div>
+      <button id="stmtBtn">📊 كشف حساب</button>`;
+    document.getElementById("modalBody").innerHTML = html;
+    document.getElementById("stmtBtn").addEventListener("click", () => showAccountStatement(clientName));
+  };
+
+  async function showAccountStatement(clientName = null) {
+    if(!clientName) {
+      let modalContent = document.getElementById("modalBody");
+      modalContent.innerHTML = `
+        <h3>كشف حساب عميل</h3>
+        <div class="relative" style="margin:15px 0;">
+          <input type="text" id="stmtClientInput" placeholder="اكتب اسم العميل..." autocomplete="off" style="width:100%;">
+          <div id="stmtSuggestions" class="suggestions" style="display:none;"></div>
+        </div>
+        <button id="showStmtBtn">عرض كشف الحساب</button>
+      `;
+      modal.style.display = "flex";
+      let stmtInput = document.getElementById("stmtClientInput");
+      stmtInput.addEventListener("input", () => {
+        showSuggestions(stmtInput, "stmtSuggestions");
+      });
+      document.getElementById("showStmtBtn").addEventListener("click", () => {
+        let chosen = stmtInput.value.trim();
+        if(!chosen) { alert("أدخل اسم العميل"); return; }
+        closeModal();
+        showAccountStatement(chosen);
+      });
+      return;
+    }
+    let clientInvoices = invoices.filter(i => i.clientName.toLowerCase() === clientName.toLowerCase());
+    if(clientInvoices.length === 0) { alert("لا توجد فواتير لهذا العميل"); return; }
+    let totalRemaining = clientInvoices.reduce((sum,inv) => sum + (inv.finalTotal - (inv.paid||0)), 0);
+    let now = new Date();
+    let dateTimeStr = now.toLocaleDateString("ar-EG") + " " + now.toLocaleTimeString("ar-EG");
+    let html = `
+      <div id="statementPrintArea" class="statement-container" style="position: relative; background:white; padding:20px; font-family: sans-serif; overflow: hidden; width: 794px; min-width: 794px; min-height: 1123px;">
+        <div class="statement-watermark">دوم الابداع</div>
+        <div style="text-align:center; margin-bottom:20px; position: relative; z-index: 1;">
+          <h2>مؤسسة دوم الابداع للتجارة</h2>
+          <h3>كشف حساب العميل: ${escapeHtml(clientName)}</h3>
+          <p>تاريخ التقرير: ${dateTimeStr}</p>
+          <hr/>
+        </div>
+        <div style="overflow-x:auto; position: relative; z-index: 1;">
+          <table class="data-table" style="width:100%; border-collapse:collapse; background: white;">
+            <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead>
+            <tbody>
+              ${clientInvoices.map(inv => `<tr><td>${inv.number}</td><td>${inv.date}</td><td>${inv.finalTotal.toFixed(2)}</td><td>${(inv.paid||0).toFixed(2)}</td><td>${(inv.finalTotal - (inv.paid||0)).toFixed(2)}</td></tr>`).join('')}
+              <tr style="font-weight:bold;"><td colspan="4">إجمالي المتبقي</td><td>${totalRemaining.toFixed(2)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <button id="printStmtPDF" style="margin-top:15px;">📄 تحميل PDF</button>
+    `;
+    document.getElementById("modalBody").innerHTML = html;
+    modal.style.display = "flex";
+    document.getElementById("printStmtPDF").addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+      let element = document.getElementById("statementPrintArea");
+      let canvas = await html2canvas(element, { scale: 2, backgroundColor: "#ffffff", logging: false });
+      let imgData = canvas.toDataURL("image/jpeg", 0.8);
+      let pdf = new jsPDF("p", "mm", "a4");
+      let imgWidth = 190;
+      let imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight, undefined, 'FAST');
+      pdf.save(`كشف_حساب_${clientName}.pdf`);
+    });
+  }
+
+  // ---------- دوال التصدير ----------
+  async function exportDocument(type) {
+    let actionBtns = document.querySelectorAll(".action-btns");
+    let originalDisplay = [];
+    actionBtns.forEach((btn,i) => { originalDisplay[i] = btn.style.display; btn.style.display = "none"; });
+    let invoiceElem = document.getElementById("invoice");
+    try {
+      if(type === "img") {
+        let canvas = await html2canvas(invoiceElem, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+        canvas.toBlob(blob => { let a=document.createElement("a"); a.download = (currentType==="invoice"?"فاتورة":"عرض_سعر")+".png"; a.href=URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href); }, "image/png");
+      } else {
+        const { jsPDF } = window.jspdf;
+        let canvas = await html2canvas(invoiceElem, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+        let imgData = canvas.toDataURL("image/jpeg", 0.7);
+        let pdf = new jsPDF("p", "mm", "a4");
+        let imgWidth = 210;
+        let imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight, undefined, 'FAST');
+        pdf.save((currentType==="invoice"?"فاتورة":"عرض_سعر")+".pdf");
+      }
+    } catch(err) { console.error(err); alert("خطأ في التصدير"); }
+    actionBtns.forEach((btn,i) => { btn.style.display = originalDisplay[i]; });
+  }
+
+  // ---------- دوال المتابع ----------
+  async function showFollowupList(type, archived = false) {
+    const filter = archived ? 'true' : 'false';
+    const url = type === 'invoice' ? `/api/invoices?read=${filter}` : `/api/quotes?read=${filter}`;
+    const res = await fetch(url);
+    const docs = await res.json();
+    const label = (type === "invoice") ? "الفواتير" : "عروض السعر";
+    const statusLabel = archived ? "مؤرشفة" : "غير مقروءة";
+    
+    if (docs.length === 0) {
+      followupContent.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">لا توجد ${label} ${statusLabel}</p>`;
+      return;
+    }
+    let html = `<h3 style="color:#0b5e7c;">${archived ? '📦 أرشيف' : '📄'} ${label} ${statusLabel}</h3>
+      <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>الرقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th></th>`;
+    if (!archived) html += `<th></th>`;
+    html += `</tr></thead><tbody>`;
+    docs.forEach(doc => {
+      html += `<tr><td>${doc.number}</td><td>${escapeHtml(doc.clientName)}</td><td>${doc.date}</td><td>${doc.finalTotal.toFixed(2)}</td>
+        <td><button onclick="window.viewFollowupDoc('${doc._id}','${type}')">👁️ عرض</button></td>`;
+      if (!archived) {
+        html += `<td><button onclick="window.markAsRead('${doc._id}','${type}')" style="background:#27ae60;">✅ تمييز كمقروءة</button></td>`;
+      }
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+    followupContent.innerHTML = html;
+    followupViewer.style.display = "none";
+  }
+
+  window.viewFollowupDoc = async function(id, type) {
+    const url = type === 'invoice' ? `/api/invoices/${id}` : `/api/quotes/${id}`;
+    const res = await fetch(url);
+    const doc = await res.json();
+    if (!doc) return;
+    currentViewerDoc = doc;
+    let html = buildInvoiceHTML(doc);
+    viewerInvoiceContainer.innerHTML = html;
+    followupViewer.style.display = "block";
+    followupContent.style.display = "none";
+  };
+
+  function buildInvoiceHTML(doc) {
+    let itemsRows = doc.items.map(it => `
+      <tr><td>${escapeHtml(it.name)}</td><td>${it.price.toFixed(2)}</td><td>${it.qty}</td><td>${(it.price*it.qty).toFixed(2)}</td><td></td></tr>
+    `).join('');
+    let total = doc.total || doc.items.reduce((s,it)=>s+it.price*it.qty,0);
+    let afterDiscount = doc.afterDiscount || Math.max(0, total - doc.discount);
+    let tax = doc.tax || afterDiscount * 0.15;
+    let finalTotal = doc.finalTotal || afterDiscount + tax;
+    let paid = doc.paid || 0;
+    let remaining = finalTotal - paid;
+
+    return `
+      <div class="invoice-card" style="width:100%; min-width:auto; max-width:100%; box-shadow:none; margin:0;">
+        <div class="invoice-header">
+          <div class="client-info">
+            <div class="client-badge">اسم العميل : ${escapeHtml(doc.clientName)}</div>
+            <div class="tax-number-badge">الرقم الضريبي : ${escapeHtml(doc.taxNumber || '')}</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 18px; font-weight: bold;">دوم الابداع</div>
+            <div class="invoice-title">${doc.type === 'invoice' ? 'فاتورة' : 'عرض سعر'} #${doc.number}</div>
+          </div>
+          <div>${doc.date}</div>
+        </div>
+        <div class="invoice-body">
+          <table class="items-table">
+            <thead><tr><th>الصنف</th><th>سعر الوحدة</th><th>الكمية</th><th>الإجمالي</th><th></th></tr></thead>
+            <tbody>${itemsRows}</tbody>
+          </table>
+          <div>
+            <div class="amount-row"><span class="amount-label">المجموع:</span><span class="amount-value">${formatMoney(total)}</span></div>
+            <div class="amount-row"><span class="amount-label">الخصم:</span><span class="amount-value">${formatMoney(doc.discount)}</span></div>
+            <div class="amount-row"><span class="amount-label">الإجمالي بعد الخصم:</span><span class="amount-value">${formatMoney(afterDiscount)}</span></div>
+            <div class="amount-row"><span class="amount-label">ضريبة (15%):</span><span class="amount-value">${formatMoney(tax)}</span></div>
+            <div class="amount-row"><span class="amount-label">الإجمالي شامل الضريبة:</span><span class="amount-value">${formatMoney(finalTotal)}</span></div>
+            ${doc.type === 'invoice' ? `
+              <div class="amount-row"><span class="amount-label">مدفوع:</span><span class="amount-value">${formatMoney(paid)}</span></div>
+              <div class="amount-row"><span class="amount-label">المتبقي:</span><span class="amount-value">${formatMoney(remaining)}</span></div>
+            ` : ''}
+          </div>
+          ${doc.note ? `<div class="note">ملاحظة: ${escapeHtml(doc.note)}</div>` : ''}
+        </div>
+        <div class="invoice-footer">
+          <div class="footer-row">
+            <div><span class="footer-label">رقم الحساب / بنك الانماء :</span> <span class="footer-account">SA2205000068204409397000</span></div>
+            <div><span class="footer-label">جوال :</span> <span>0536880780</span></div>
+          </div>
+          <div class="footer-row-center">المملكة العربية السعودية - جدة - حي الحمدانية - مخطط الوليد</div>
+        </div>
+      </div>
+    `;
+  }
+
+  window.exportViewerDoc = async function(type) {
+    if (!currentViewerDoc) return;
+    let container = viewerInvoiceContainer.querySelector('.invoice-card');
+    if (!container) return;
+    try {
+      if (type === 'img') {
+        let canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+        canvas.toBlob(blob => { let a=document.createElement("a"); a.download = (currentViewerDoc.type==="invoice"?"فاتورة":"عرض_سعر")+".png"; a.href=URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href); }, "image/png");
+      } else {
+        const { jsPDF } = window.jspdf;
+        let canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+        let imgData = canvas.toDataURL("image/jpeg", 0.7);
+        let pdf = new jsPDF("p", "mm", "a4");
+        let imgWidth = 210;
+        let imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight, undefined, 'FAST');
+        pdf.save((currentViewerDoc.type==="invoice"?"فاتورة":"عرض_سعر")+".pdf");
+      }
+    } catch(err) { console.error(err); alert("خطأ في التصدير"); }
+  };
+
+  window.closeViewerMode = function() {
+    followupViewer.style.display = "none";
+    followupContent.style.display = "block";
+    currentViewerDoc = null;
+  };
+
+  window.markAsRead = async function(id, type) {
+    if (!confirm("هل أنت متأكد من تمييز هذا المستند كمقروء؟")) return;
+    const url = type === 'invoice' ? `/api/invoices/${id}/read` : `/api/quotes/${id}/read`;
+    const res = await fetch(url, { method: 'PUT' });
+    if (res.ok) {
+      // تحديث البيانات المحلية
+      if (type === 'invoice') {
+        const doc = invoices.find(d => d._id === id);
+        if (doc) doc.read = true;
+      } else {
+        const doc = quotes.find(d => d._id === id);
+        if (doc) doc.read = true;
+      }
+      // إعادة عرض القائمة
+      const activeBtn = document.querySelector('.followup-nav button.active');
+      if (activeBtn) activeBtn.click();
+    } else {
+      alert('فشل التحديث');
+    }
+  };
+
+  // ---------- دوال التنقل ----------
+  function showMainContent() {
+    welcomeScreen.style.display = "none";
+    mainContent.classList.remove("hidden");
+    isFollowupMode = false;
+    clearUnsavedChanges();
+  }
+
+  function enterFollowupMode() {
+    welcomeScreen.style.display = "none";
+    mainContent.classList.add("hidden");
+    isFollowupMode = true;
+    followupScreen.style.display = "block";
+    followupContent.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">اختر أحد الخيارات أعلاه لعرض المستندات</p>`;
+    followupViewer.style.display = "none";
+    document.querySelectorAll('.followup-nav button').forEach(b => b.classList.remove('active'));
+  }
+
+  function exitFollowupMode() {
+    followupScreen.style.display = "none";
+    mainContent.classList.remove("hidden");
+    isFollowupMode = false;
+    followupContent.innerHTML = `<p style="text-align:center; color:#888; padding:40px 0;">اختر أحد الخيارات أعلاه لعرض المستندات</p>`;
+    followupViewer.style.display = "none";
+    currentViewerDoc = null;
+    clearUnsavedChanges();
+  }
+
+  // ---------- أحداث شاشة الترحيب ----------
+  document.getElementById("startBtn").addEventListener("click", showMainContent);
+  document.getElementById("followupBtn").addEventListener("click", function() {
+    passwordModal.style.display = "flex";
+    passwordInput.value = "";
+    passwordError.style.display = "none";
+    passwordInput.focus();
+  });
+
+  document.getElementById("passwordSubmitBtn").addEventListener("click", function() {
+    let pass = passwordInput.value.trim();
+    if (pass === "1742001") {
+      passwordModal.style.display = "none";
+      enterFollowupMode();
+    } else {
+      passwordError.style.display = "block";
+      passwordInput.value = "";
+      passwordInput.focus();
+    }
+  });
+
+  document.getElementById("passwordCancelBtn").addEventListener("click", function() {
+    passwordModal.style.display = "none";
+  });
+
+  passwordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      document.getElementById("passwordSubmitBtn").click();
+    }
+  });
+
+  // ---------- أحداث المتابع ----------
+  document.getElementById("unreadInvoicesBtn").addEventListener("click", function() {
+    document.querySelectorAll('.followup-nav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    showFollowupList("invoice", false);
+  });
+  document.getElementById("unreadQuotesBtn").addEventListener("click", function() {
+    document.querySelectorAll('.followup-nav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    showFollowupList("quote", false);
+  });
+  document.getElementById("archivedInvoicesBtn").addEventListener("click", function() {
+    document.querySelectorAll('.followup-nav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    showFollowupList("invoice", true);
+  });
+  document.getElementById("archivedQuotesBtn").addEventListener("click", function() {
+    document.querySelectorAll('.followup-nav button').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    showFollowupList("quote", true);
+  });
+
+  document.getElementById("exitFollowupBtn").addEventListener("click", function() {
+    if (confirm("هل تريد الخروج من وضع المتابع والعودة إلى الواجهة الرئيسية؟")) {
+      exitFollowupMode();
+    }
+  });
+
+  // ---------- الأحداث الرئيسية ----------
+  document.getElementById("addItemBtn").addEventListener("click", () => {
+    if (isFollowupMode) { alert("لا يمكن التعديل في وضع المتابع"); return; }
+    let name = document.getElementById("itemName").value.trim();
+    let price = parseFloat(document.getElementById("itemPrice").value);
+    let qty = parseInt(document.getElementById("itemQty").value);
+    if(!name || isNaN(price) || isNaN(qty) || qty<=0) { alert("يرجى إدخال بيانات صحيحة للصنف (الاسم، السعر، كمية أكبر من صفر)"); return; }
+    items.push({name, price, qty});
+    document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = ""; document.getElementById("itemQty").value = "";
+    renderItems();
+    markUnsavedChanges();
+  });
+
+  discountInput.addEventListener("input", () => { if (!isFollowupMode) { renderItems(); markUnsavedChanges(); } });
+  paidInput.addEventListener("input", () => { if (!isFollowupMode) { renderItems(); markUnsavedChanges(); } });
+
+  document.getElementById("saveDocBtn").addEventListener("click", saveCurrentDocument);
+  document.getElementById("showInvoicesBtn").addEventListener("click", () => showDocumentsList("invoice"));
+  document.getElementById("showQuotesBtn").addEventListener("click", () => showDocumentsList("quote"));
+  document.getElementById("showCustomersBtn").addEventListener("click", showCustomersList);
+  document.getElementById("showAccountStatementBtn").addEventListener("click", () => showAccountStatement());
+  document.getElementById("downloadImgBtn").addEventListener("click", () => exportDocument("img"));
+  document.getElementById("downloadPdfBtn").addEventListener("click", () => exportDocument("pdf"));
+
+  document.getElementById("addNoteBtn").addEventListener("click", () => {
+    if (isFollowupMode) { alert("لا يمكن التعديل في وضع المتابع"); return; }
+    let txt = prompt("ملاحظة:");
+    if(txt && txt.trim()) { noteBlue.style.display = "block"; noteBlue.textContent = "ملاحظة: " + txt.trim(); markUnsavedChanges(); }
+    else { noteBlue.style.display = "none"; noteBlue.textContent = ""; }
+  });
+
+  // دوال المستندات الجديدة
+  function handleNewDocument(type) {
+    if (isFollowupMode) { alert("لا يمكن إنشاء مستند جديد في وضع المتابع"); return; }
+    if (hasUnsavedChanges) {
+      if (confirm("هناك تغييرات غير محفوظة في المستند الحالي. هل تريد حفظها قبل إنشاء مستند جديد؟")) {
+        let saved = saveCurrentDocument();
+        if (!saved) {
+          if (!confirm("تعذر حفظ المستند الحالي. هل تريد المتابعة بدون حفظ؟")) {
+            return;
+          }
+        }
+      }
+    }
+    if(confirm(`بدء ${type === "invoice" ? "فاتورة" : "عرض سعر"} جديد؟`)) {
+      if(type === "invoice") { invoiceCounter++; } else { quoteCounter++; }
+      items = []; currentEditId = null; currentEditType = null; currentType = type;
+      document.querySelector(`input[name="docType"][value="${type}"]`).checked = true;
+      clientNameInput.value = "";
+      taxNumberInput.value = "";
+      updateClientDisplay();
+      discountInput.value = 0; paidInput.value = 0;
+      noteBlue.style.display = "none"; noteBlue.textContent = "";
+      renderItems(); updateDocType(); updateHeaderDate();
+      clearUnsavedChanges();
+    }
+  }
+
+  document.getElementById("newInvoiceBtn").addEventListener("click", () => handleNewDocument("invoice"));
+  document.getElementById("newQuoteBtn").addEventListener("click", () => handleNewDocument("quote"));
+  typeRadios.forEach(r => r.addEventListener("change", () => { if (!isFollowupMode) { updateDocType(); renderItems(); markUnsavedChanges(); } }));
+
+  // ---------- تهيئة التطبيق ----------
+  async function init() {
+    await loadAllData();
+    updateHeaderDate();
+    updateDocType();
+    updateClientDisplay();
+    clearUnsavedChanges();
+    welcomeScreen.style.display = "flex";
+    mainContent.classList.add("hidden");
+  }
+
+  init();
+</script>
+</body>
+</html>
