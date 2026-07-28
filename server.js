@@ -3,17 +3,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// استيراد النماذج
 const Customer = require('./models/Customer');
 const Invoice = require('./models/Invoice');
 const Quote = require('./models/Quote');
 
 const app = express();
 
-// التحقق من المتغيرات
 console.log('🔍 MONGO_URI:', process.env.MONGO_URI ? '✅ موجود' : '❌ غير موجود');
 
-// إعدادات الـ middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
@@ -24,7 +21,6 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 45000,
-  family: 4,
 })
 .then(() => {
   console.log('✅ MongoDB connected successfully');
@@ -34,30 +30,24 @@ mongoose.connect(process.env.MONGO_URI, {
   console.log('❌ MongoDB connection error:', err.message);
 });
 
-// =========================================
-// دوال مساعدة لزيادة العداد
-// =========================================
+// دوال الحصول على العداد التالي
 async function getNextInvoiceNumber() {
   const last = await Invoice.findOne().sort({ number: -1 });
   return last ? last.number + 1 : 1000;
 }
-
 async function getNextQuoteNumber() {
   const last = await Quote.findOne().sort({ number: -1 });
   return last ? last.number + 1 : 1000;
 }
 
-// =========================================
-// العملاء (Customers)
-// =========================================
+// ----- العملاء -----
 app.post('/api/customers', async (req, res) => {
   try {
     const { name } = req.body;
-    let customer = await Customer.findOne({ name: name.trim() });
-    if (!customer) {
-      customer = new Customer({ name: name.trim() });
-      await customer.save();
-    }
+    const existing = await Customer.findOne({ name: name.trim() });
+    if (existing) return res.json(existing);
+    const customer = new Customer({ name: name.trim() });
+    await customer.save();
     res.json(customer);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -73,20 +63,31 @@ app.get('/api/customers', async (req, res) => {
   }
 });
 
-// =========================================
-// الفواتير (Invoices)
-// =========================================
+// حذف عميل
+app.delete('/api/customers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({ error: 'العميل غير موجود' });
+    }
+    await Customer.findByIdAndDelete(id);
+    res.json({ success: true, message: 'تم حذف العميل بنجاح' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----- الفواتير -----
 app.post('/api/invoices', async (req, res) => {
   try {
     const data = req.body;
     let invoice;
     if (data.id) {
-      // تحديث فاتورة موجودة
       invoice = await Invoice.findById(data.id);
       if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
       Object.assign(invoice, data);
     } else {
-      // إنشاء فاتورة جديدة
       const number = await getNextInvoiceNumber();
       invoice = new Invoice({ ...data, number, type: 'invoice' });
     }
@@ -141,9 +142,7 @@ app.put('/api/invoices/:id/read', async (req, res) => {
   }
 });
 
-// =========================================
-// عروض السعر (Quotes)
-// =========================================
+// ----- عروض السعر -----
 app.post('/api/quotes', async (req, res) => {
   try {
     const data = req.body;
@@ -207,9 +206,7 @@ app.put('/api/quotes/:id/read', async (req, res) => {
   }
 });
 
-// =========================================
 // تشغيل الخادم
-// =========================================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
