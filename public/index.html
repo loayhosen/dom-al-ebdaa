@@ -205,6 +205,19 @@
     max-width: 250px;
   }
   
+  .company-info {
+    text-align: center;
+    line-height: 1.6;
+  }
+  .company-info .company-name {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .company-info .company-details {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  
   .invoice-body {
     padding: 24px;
     position: relative;
@@ -688,8 +701,8 @@
           <button id="selectCustomerBtn" style="margin-top: 6px; width: 100%; background: #eef2f5; color:#0b5e7c;">📋 عميل موجود مسبقاً</button>
         </div>
         <div style="min-width: 180px;">
-          <label>الرقم الضريبي</label>
-          <input type="text" id="taxNumberInput" placeholder="رقم الضريبة" style="width:100%;">
+          <label>الرقم الضريبي للعميل</label>
+          <input type="text" id="taxNumberInput" placeholder="رقم ضريبة العميل" style="width:100%;">
         </div>
         <label>الخصم <br/><input type="number" id="discountInput" step="0.01" value="0" style="width:110px"></label>
         <label>المدفوع <br/><input type="number" id="paidInput" step="0.01" value="0" style="width:110px"></label>
@@ -715,10 +728,13 @@
           <div class="invoice-header">
             <div class="client-info">
               <div class="client-badge" id="clientNameBox">اسم العميل :</div>
-              <div class="tax-number-badge" id="taxNumberBox">الرقم الضريبي :</div>
+              <div class="tax-number-badge" id="taxNumberBox">الرقم الضريبي للعميل :</div>
             </div>
-            <div style="text-align: center;">
-              <div style="font-size: 18px; font-weight: bold;">دوم الابداع</div>
+            <div class="company-info">
+              <div class="company-name">دوم الابداع</div>
+              <div class="company-details">
+                الرقم الضريبي: 311280852900003 | السجل التجاري: 7031118321
+              </div>
               <div class="invoice-title" id="headerTitle">فاتورة #1000</div>
             </div>
             <div><span id="headerDate"></span></div>
@@ -832,7 +848,7 @@
     let name = clientNameInput.value.trim();
     clientNameBox.textContent = name ? "اسم العميل : " + name : "اسم العميل :";
     let tax = taxNumberInput.value.trim();
-    taxNumberBox.textContent = tax ? "الرقم الضريبي : " + tax : "الرقم الضريبي :";
+    taxNumberBox.textContent = tax ? "الرقم الضريبي للعميل : " + tax : "الرقم الضريبي للعميل :";
     markUnsavedChanges();
   }
 
@@ -868,7 +884,6 @@
     const res = await fetch(url);
     const data = await res.json();
     invoices = data;
-    // تحديث العداد
     if (invoices.length > 0) {
       const maxNum = Math.max(...invoices.map(i => i.number));
       if (maxNum >= invoiceCounter) invoiceCounter = maxNum + 1;
@@ -1328,10 +1343,13 @@
         <div class="invoice-header">
           <div class="client-info">
             <div class="client-badge">اسم العميل : ${escapeHtml(doc.clientName)}</div>
-            <div class="tax-number-badge">الرقم الضريبي : ${escapeHtml(doc.taxNumber || '')}</div>
+            <div class="tax-number-badge">الرقم الضريبي للعميل : ${escapeHtml(doc.taxNumber || '')}</div>
           </div>
-          <div style="text-align: center;">
-            <div style="font-size: 18px; font-weight: bold;">دوم الابداع</div>
+          <div class="company-info">
+            <div class="company-name">دوم الابداع</div>
+            <div class="company-details">
+              الرقم الضريبي: 311280852900003 | السجل التجاري: 7031118321
+            </div>
             <div class="invoice-title">${doc.type === 'invoice' ? 'فاتورة' : 'عرض سعر'} #${doc.number}</div>
           </div>
           <div>${doc.date}</div>
@@ -1397,7 +1415,6 @@
     const url = type === 'invoice' ? `/api/invoices/${id}/read` : `/api/quotes/${id}/read`;
     const res = await fetch(url, { method: 'PUT' });
     if (res.ok) {
-      // تحديث البيانات المحلية
       if (type === 'invoice') {
         const doc = invoices.find(d => d._id === id);
         if (doc) doc.read = true;
@@ -1405,7 +1422,6 @@
         const doc = quotes.find(d => d._id === id);
         if (doc) doc.read = true;
       }
-      // إعادة عرض القائمة
       const activeBtn = document.querySelector('.followup-nav button.active');
       if (activeBtn) activeBtn.click();
     } else {
@@ -1531,7 +1547,6 @@
     else { noteBlue.style.display = "none"; noteBlue.textContent = ""; }
   });
 
-  // دوال المستندات الجديدة
   function handleNewDocument(type) {
     if (isFollowupMode) { alert("لا يمكن إنشاء مستند جديد في وضع المتابع"); return; }
     if (hasUnsavedChanges) {
