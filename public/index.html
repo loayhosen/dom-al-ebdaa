@@ -1161,14 +1161,27 @@
     }
   };
 
-  // ---------- دوال العملاء وكشف الحساب ----------
+  // ---------- دوال العملاء وكشف الحساب (معدلة) ----------
   function showCustomersList() {
     if(customers.length===0) { alert("لا يوجد عملاء"); return; }
-    let html = `<h3>قائمة العملاء</h3><div class="search-box"><input type="text" id="searchCustomerInput" placeholder="بحث باسم العميل"></div><div id="custContainer" style="overflow-x:auto;"><table class="data-table"><thead><tr><th>الاسم</th><th>الفواتير</th><th>عروض السعر</th><th></th></tr></thead><tbody>`;
+    let html = `<h3>قائمة العملاء</h3>
+      <div class="search-box"><input type="text" id="searchCustomerInput" placeholder="بحث باسم العميل"></div>
+      <div id="custContainer" style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>الاسم</th><th>الفواتير</th><th>عروض السعر</th><th>الإجراءات</th></tr></thead>
+          <tbody>`;
     customers.forEach(c => {
       let invCount = invoices.filter(i=>i.clientName.toLowerCase()===c.name.toLowerCase()).length;
       let qtCount = quotes.filter(q=>q.clientName.toLowerCase()===c.name.toLowerCase()).length;
-      html += `<tr data-cname="${c.name.toLowerCase()}"><td>${escapeHtml(c.name)}</td><td>${invCount}</td><td>${qtCount}</td><td><button onclick="window.showCustomerDetails('${escapeHtml(c.name)}')">تفاصيل</button></td></tr>`;
+      html += `<tr data-cname="${c.name.toLowerCase()}">
+        <td>${escapeHtml(c.name)}</td>
+        <td>${invCount}</td>
+        <td>${qtCount}</td>
+        <td>
+          <button onclick="window.showCustomerDetails('${escapeHtml(c.name)}')">تفاصيل</button>
+          <button onclick="window.deleteCustomer('${c._id}','${escapeHtml(c.name)}')" style="background:#e74c3c; color:white;">🗑️ حذف</button>
+        </td>
+      </tr>`;
     });
     html += `</tbody></table></div>`;
     document.getElementById("modalBody").innerHTML = html;
@@ -1184,6 +1197,25 @@
       });
     });
   }
+
+  window.deleteCustomer = async function(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف العميل "${name}"؟ سيتم حذف جميع الفواتير وعروض السعر المرتبطة به.`)) return;
+    try {
+      const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (res.ok) {
+        alert('تم حذف العميل بنجاح');
+        // تحديث القائمة المعروضة
+        showCustomersList();
+        // تحديث البيانات المحلية
+        customers = customers.filter(c => c._id !== id);
+      } else {
+        alert('فشل الحذف: ' + result.error);
+      }
+    } catch (err) {
+      alert('خطأ في الاتصال: ' + err.message);
+    }
+  };
 
   window.showCustomerDetails = function(clientName) {
     let invs = invoices.filter(i=>i.clientName.toLowerCase()===clientName.toLowerCase());
