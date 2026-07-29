@@ -733,7 +733,7 @@
             <div class="company-info">
               <div class="company-name">دوم الابداع</div>
               <div class="company-details">
-                الرقم الضريبي: 311280852900003 | السجل التجاري: 7031118321
+                الرقم الضريبي: 311280852900003
               </div>
               <div class="invoice-title" id="headerTitle">فاتورة #1000</div>
             </div>
@@ -764,6 +764,10 @@
               <div>
                 <span class="footer-label">جوال :</span>
                 <span>0536880780</span>
+              </div>
+              <div>
+                <span class="footer-label">السجل التجاري :</span>
+                <span>7031118321</span>
               </div>
             </div>
             <div class="footer-row-center">
@@ -1161,7 +1165,7 @@
     }
   };
 
-  // ---------- دوال العملاء وكشف الحساب (معدلة) ----------
+  // ---------- دوال العملاء وكشف الحساب ----------
   function showCustomersList() {
     if(customers.length===0) { alert("لا يوجد عملاء"); return; }
     let html = `<h3>قائمة العملاء</h3>
@@ -1205,9 +1209,7 @@
       const result = await res.json();
       if (res.ok) {
         alert('تم حذف العميل بنجاح');
-        // تحديث القائمة المعروضة
         showCustomersList();
-        // تحديث البيانات المحلية
         customers = customers.filter(c => c._id !== id);
       } else {
         alert('فشل الحذف: ' + result.error);
@@ -1380,7 +1382,7 @@
           <div class="company-info">
             <div class="company-name">دوم الابداع</div>
             <div class="company-details">
-              الرقم الضريبي: 311280852900003 | السجل التجاري: 7031118321
+              الرقم الضريبي: 311280852900003
             </div>
             <div class="invoice-title">${doc.type === 'invoice' ? 'فاتورة' : 'عرض سعر'} #${doc.number}</div>
           </div>
@@ -1408,6 +1410,7 @@
           <div class="footer-row">
             <div><span class="footer-label">رقم الحساب / بنك الانماء :</span> <span class="footer-account">SA2205000068204409397000</span></div>
             <div><span class="footer-label">جوال :</span> <span>0536880780</span></div>
+            <div><span class="footer-label">السجل التجاري :</span> <span>7031118321</span></div>
           </div>
           <div class="footer-row-center">المملكة العربية السعودية - جدة - حي الحمدانية - مخطط الوليد</div>
         </div>
